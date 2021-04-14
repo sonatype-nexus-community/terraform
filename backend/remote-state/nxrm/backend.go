@@ -30,6 +30,12 @@ func New() backend.Backend {
 				DefaultFunc: schema.EnvDefaultFunc("NXRM_URL", nil),
 				Description: "NXRM Repo URL",
 			},
+			"subpath": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("NXRM_SUBPATH", nil),
+				Description: "NXRM Repo Subpath",
+			},
 			"timeout": {
 				Type:        schema.TypeInt,
 				Required:    true,
@@ -56,12 +62,14 @@ func (b *Backend) configure(ctx context.Context) error {
 	userName := data.Get("username").(string)
 	password := data.Get("password").(string)
 	url := data.Get("url").(string)
+	subpath := data.Get("subpath").(string)
 	timeout := data.Get("timeout").(int64)
 
 	b.client = &NXRMClient{
 		userName:        userName,
 		password:        password,
 		url:             url,
+		subpath:         subpath,
 		tfStateArtifact: "terraform.tfstate",
 		timeoutSeconds:  timeout,
 	}

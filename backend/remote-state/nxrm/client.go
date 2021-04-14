@@ -16,13 +16,14 @@ type NXRMClient struct {
 	userName        string
 	password        string
 	url             string
+	subpath         string
 	timeoutSeconds  int64
 	tfStateArtifact string
 	httpClient      *http.Client
 }
 
 func (n *NXRMClient) getNXRMURL() string {
-	return fmt.Sprintf("%s/%s", n.url, n.tfStateArtifact)
+	return fmt.Sprintf("%s/%s/%s", n.url, n.subpath, n.tfStateArtifact)
 }
 
 func (n *NXRMClient) getHTTPClient() *http.Client {
