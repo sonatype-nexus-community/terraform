@@ -63,7 +63,7 @@ func (b *Backend) configure(ctx context.Context) error {
 	password := data.Get("password").(string)
 	url := data.Get("url").(string)
 	subpath := data.Get("subpath").(string)
-	timeout := data.Get("timeout").(int64)
+	timeout := data.Get("timeout").(int)
 
 	b.client = &NXRMClient{
 		userName:        userName,

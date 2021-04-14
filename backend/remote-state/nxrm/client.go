@@ -17,7 +17,7 @@ type NXRMClient struct {
 	password        string
 	url             string
 	subpath         string
-	timeoutSeconds  int64
+	timeoutSeconds  int
 	tfStateArtifact string
 	httpClient      *http.Client
 }
