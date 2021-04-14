@@ -23,11 +23,11 @@ import (
 	backendInmem "github.com/hashicorp/terraform/backend/remote-state/inmem"
 	backendKubernetes "github.com/hashicorp/terraform/backend/remote-state/kubernetes"
 	backendManta "github.com/hashicorp/terraform/backend/remote-state/manta"
+	backendNXRM "github.com/hashicorp/terraform/backend/remote-state/nxrm"
 	backendOSS "github.com/hashicorp/terraform/backend/remote-state/oss"
 	backendPg "github.com/hashicorp/terraform/backend/remote-state/pg"
 	backendS3 "github.com/hashicorp/terraform/backend/remote-state/s3"
 	backendSwift "github.com/hashicorp/terraform/backend/remote-state/swift"
-	backendNXRM "github.com/sonatype-nexus-community/terraform/backend/remote-state/nxrm"
 )
 
 // backends is the list of available backends. This is a global variable

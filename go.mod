@@ -142,4 +142,6 @@ replace google.golang.org/grpc v1.31.1 => google.golang.org/grpc v1.27.1
 
 replace k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 
+// replace github.com/pselle/bar => /Users/pselle/Projects/bar
+
 go 1.14
