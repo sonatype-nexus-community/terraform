@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform/states/remote"
 )
 
-const TF_STATE = "terraform.tfstate"
-
 type NXRMClient struct {
 	userName        string
 	password        string
