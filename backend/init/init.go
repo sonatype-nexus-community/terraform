@@ -27,6 +27,7 @@ import (
 	backendPg "github.com/hashicorp/terraform/backend/remote-state/pg"
 	backendS3 "github.com/hashicorp/terraform/backend/remote-state/s3"
 	backendSwift "github.com/hashicorp/terraform/backend/remote-state/swift"
+	backendNXRM "github.com/sonatype-nexus-community/terraform/backend/remote-state/nxrm"
 )
 
 // backends is the list of available backends. This is a global variable
@@ -65,6 +66,7 @@ func Init(services *disco.Disco) {
 		"inmem":       func() backend.Backend { return backendInmem.New() },
 		"kubernetes":  func() backend.Backend { return backendKubernetes.New() },
 		"manta":       func() backend.Backend { return backendManta.New() },
+		"nxrm":        func() backend.Backend { return backendNXRM.New() },
 		"oss":         func() backend.Backend { return backendOSS.New() },
 		"pg":          func() backend.Backend { return backendPg.New() },
 		"s3":          func() backend.Backend { return backendS3.New() },
