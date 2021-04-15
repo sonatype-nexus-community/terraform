@@ -3,6 +3,7 @@ package nxrm
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/states/remote"
+	"github.com/hashicorp/terraform/states/statemgr"
 )
 
 type NXRMClient struct {
@@ -20,6 +22,9 @@ type NXRMClient struct {
 	timeoutSeconds  int
 	tfStateArtifact string
 	httpClient      *http.Client
+
+	lockID       string
+	jsonLockInfo []byte
 }
 
 func (n *NXRMClient) getNXRMURL() string {
@@ -92,6 +97,63 @@ func (n *NXRMClient) Put(data []byte) error {
 	}
 
 	return nil
+}
+
+func (n *NXRMClient) Lock(info *statemgr.LockInfo) (string, error) {
+	jsonLockInfo := info.Marshal()
+	req, err := n.getRequest("LOCK", nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := n.getHTTPClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		n.lockID = info.ID
+		n.jsonLockInfo = jsonLockInfo
+		return info.ID, nil
+	case http.StatusUnauthorized:
+		return "", fmt.Errorf("NXRM requires auth")
+	case http.StatusForbidden:
+		return "", fmt.Errorf("NXRM invalid auth")
+	case http.StatusConflict, http.StatusLocked:
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("NXRM remote state already locked, failed to read body")
+		}
+		existing := statemgr.LockInfo{}
+		err = json.Unmarshal(body, &existing)
+		if err != nil {
+			return "", fmt.Errorf("NXRM remote state already locked, failed to unmarshal body")
+		}
+		return "", fmt.Errorf("NXM remote state already locked: ID=%s", existing.ID)
+	default:
+		return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+	}
+}
+
+func (n *NXRMClient) Unlock(id string) error {
+	req, err := n.getRequest("LOCK", nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := n.getHTTPClient().Do(req)
+	if err != nil {
+		return err
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	default:
+		return fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+	}
 }
 
 func (n *NXRMClient) Delete() error {
