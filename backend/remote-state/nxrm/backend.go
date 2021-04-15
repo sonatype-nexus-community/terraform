@@ -2,6 +2,8 @@ package nxrm
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/hashicorp/terraform/backend"
 	"github.com/hashicorp/terraform/internal/legacy/helper/schema"
@@ -35,6 +37,13 @@ func New() backend.Backend {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("NXRM_SUBPATH", nil),
 				Description: "NXRM Repo Subpath",
+				ValidateFunc: func(v interface{}, s string) ([]string, []error) {
+					// taken from backend/remote-state/s3
+					if strings.HasPrefix(v.(string), "/") {
+						return nil, []error{errors.New("subpath must not start with '/'")}
+					}
+					return nil, nil
+				},
 			},
 			"timeout": {
 				Type:        schema.TypeInt,
