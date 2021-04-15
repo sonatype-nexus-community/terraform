@@ -12,40 +12,40 @@ func TestBackend_impl(t *testing.T) {
 }
 
 func TestBackendConfig(t *testing.T) {
-	config := map[string]interface{}{
-		"username": "testymctestface",
-		"password": "mybigsecret",
-		"url":      "http://localhost:8081/repository/tf-backend",
-		"subpath":  "tf",
-		"state_name": "terraform.tfstate",
-		"timeout":  30,
-	}
-
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
 
-	if b.client.userName != "testymctestface" {
-		t.Fatalf("Incorrect userName was populated")
+	if b.client.userName != config["username"] {
+		t.Fatalf("Incorrect userName populated")
 	}
-	if b.client.password != "mybigsecret" {
-		t.Fatalf("Incorrect password was populated")
+	if b.client.password != config["password"] {
+		t.Fatalf("Incorrect password populated")
 	}
-	if b.client.url != "http://localhost:8081/repository/tf-backend" {
-		t.Fatalf("Incorrect url was populated")
+	if b.client.url != config["url"] {
+		t.Fatalf("Incorrect url populated")
 	}
 
-	if b.client.subpath != "tf" {
-		t.Fatalf("Incorrect subpath was populated")
+	if b.client.subpath != config["subpath"] {
+		t.Fatalf("Incorrect subpath populated")
+	}
+
+	if b.client.stateName != config["stateName"] {
+		t.Fatalf("Incorrect stateName populated")
+	}
+
+	if b.client.timeout != config["timeout"] {
+		t.Fatalf("Incorrect timeout populated")
 	}
 }
 
 func TestBackendConfig_invalidSubpath(t *testing.T) {
+	// sanitize null values for Go and break `subpath`
 	cfg := hcl2shim.HCL2ValueFromConfigValue(map[string]interface{}{
-		"username": "testymctestface",
-		"password": "mybigsecret",
-		"url":      "http://localhost:8081/repository/tf-backend",
-		"subpath":  "/tf", // forward slash error
-		"state_name": "terraform.tfstate",
-		"timeout":  30,
+		"username":  config["username"],
+		"password":  config["password"],
+		"url":       config["url"],
+		"subpath":   "/this/here", // forward slash error
+		"stateName": config["stateName"],
+		"timeout":   config["timeout"],
 	})
 
 	_, diags := New().PrepareConfig(cfg)

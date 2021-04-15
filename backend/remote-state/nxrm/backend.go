@@ -46,7 +46,7 @@ func New() backend.Backend {
 					return nil, nil
 				},
 			},
-			"state_name": {
+			"stateName": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Default:     "terraform.tfstate",
@@ -79,7 +79,7 @@ func (b *Backend) configure(ctx context.Context) error {
 	password := data.Get("password").(string)
 	url := data.Get("url").(string)
 	subpath := data.Get("subpath").(string)
-	stateName := data.Get("state_name").(string)
+	stateName := data.Get("stateName").(string)
 	timeout := data.Get("timeout").(int)
 
 	b.client = &NXRMClient{
@@ -89,7 +89,7 @@ func (b *Backend) configure(ctx context.Context) error {
 		subpath:         subpath,
 		tfLockArtifact:  fmt.Sprintf("%s.lock.json", stateName),
 		tfStateArtifact: stateName,
-		timeoutSeconds:  timeout,
+		timeout:         timeout,
 	}
 	return nil
 }

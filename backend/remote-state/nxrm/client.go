@@ -20,7 +20,8 @@ type NXRMClient struct {
 	password        string
 	url             string
 	subpath         string
-	timeoutSeconds  int
+	stateName       string
+	timeout         int
 	tfStateArtifact string
 	tfLockArtifact  string
 	httpClient      *http.Client
@@ -41,7 +42,7 @@ func (n *NXRMClient) getNXRMURL(artifact string) string {
 func (n *NXRMClient) getHTTPClient() *http.Client {
 	if n.httpClient == nil {
 		n.httpClient = &http.Client{
-			Timeout: time.Second * time.Duration(n.timeoutSeconds),
+			Timeout: time.Second * time.Duration(n.timeout),
 		}
 	}
 	return n.httpClient
