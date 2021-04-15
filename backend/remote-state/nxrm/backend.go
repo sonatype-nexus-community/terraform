@@ -3,6 +3,7 @@ package nxrm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform/backend"
@@ -86,7 +87,7 @@ func (b *Backend) configure(ctx context.Context) error {
 		password:        password,
 		url:             url,
 		subpath:         subpath,
-		tfLockArtifact:  fmt.Springf("%s.lock.json", stateName),
+		tfLockArtifact:  fmt.Sprintf("%s.lock.json", stateName),
 		tfStateArtifact: stateName,
 		timeoutSeconds:  timeout,
 	}
