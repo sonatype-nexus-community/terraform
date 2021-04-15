@@ -45,6 +45,12 @@ func New() backend.Backend {
 					return nil, nil
 				},
 			},
+			"state_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Default:     "terraform.tfstate",
+				Description: "The desired name of the State file (defaults to terraform.tfstate)",
+			},
 			"timeout": {
 				Type:        schema.TypeInt,
 				Required:    true,
@@ -72,6 +78,7 @@ func (b *Backend) configure(ctx context.Context) error {
 	password := data.Get("password").(string)
 	url := data.Get("url").(string)
 	subpath := data.Get("subpath").(string)
+	stateName := data.Get("state_name").(string)
 	timeout := data.Get("timeout").(int)
 
 	b.client = &NXRMClient{
@@ -79,8 +86,8 @@ func (b *Backend) configure(ctx context.Context) error {
 		password:        password,
 		url:             url,
 		subpath:         subpath,
-		tfLockArtifact:  "terraform.tfstate.lock.json",
-		tfStateArtifact: "terraform.tfstate",
+		tfLockArtifact:  fmt.Springf("%s.lock.json", stateName),
+		tfStateArtifact: stateName,
 		timeoutSeconds:  timeout,
 	}
 	return nil
