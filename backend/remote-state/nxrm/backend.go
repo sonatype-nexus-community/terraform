@@ -79,6 +79,7 @@ func (b *Backend) configure(ctx context.Context) error {
 		password:        password,
 		url:             url,
 		subpath:         subpath,
+		tfLockArtifact:  "terraform.tfstate.lock.json",
 		tfStateArtifact: "terraform.tfstate",
 		timeoutSeconds:  timeout,
 	}

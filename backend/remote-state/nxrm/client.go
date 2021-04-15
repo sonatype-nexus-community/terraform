@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/states/remote"
@@ -21,14 +22,20 @@ type NXRMClient struct {
 	subpath         string
 	timeoutSeconds  int
 	tfStateArtifact string
+	tfLockArtifact  string
 	httpClient      *http.Client
 
 	lockID       string
 	jsonLockInfo []byte
 }
 
-func (n *NXRMClient) getNXRMURL() string {
-	return fmt.Sprintf("%s/%s/%s", n.url, n.subpath, n.tfStateArtifact)
+func (n *NXRMClient) getNXRMURL(artifact string) string {
+	url := n.url
+	if strings.HasSuffix(n.url, "/") {
+		url = strings.TrimRight(n.url, "/")
+	}
+
+	return fmt.Sprintf("%s/%s/%s", url, n.subpath, artifact)
 }
 
 func (n *NXRMClient) getHTTPClient() *http.Client {
@@ -40,8 +47,8 @@ func (n *NXRMClient) getHTTPClient() *http.Client {
 	return n.httpClient
 }
 
-func (n *NXRMClient) getRequest(method string, data io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, n.getNXRMURL(), data)
+func (n *NXRMClient) getRequest(method string, artifact string, data io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, n.getNXRMURL(artifact), data)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +59,7 @@ func (n *NXRMClient) getRequest(method string, data io.Reader) (*http.Request, e
 }
 
 func (n *NXRMClient) Get() (*remote.Payload, error) {
-	req, err := n.getRequest(http.MethodGet, nil)
+	req, err := n.getRequest(http.MethodGet, n.tfStateArtifact, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +93,7 @@ func (n *NXRMClient) Get() (*remote.Payload, error) {
 }
 
 func (n *NXRMClient) Put(data []byte) error {
-	req, err := n.getRequest(http.MethodPut, bytes.NewReader(data))
+	req, err := n.getRequest(http.MethodPut, n.tfStateArtifact, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -101,7 +108,8 @@ func (n *NXRMClient) Put(data []byte) error {
 
 func (n *NXRMClient) Lock(info *statemgr.LockInfo) (string, error) {
 	jsonLockInfo := info.Marshal()
-	req, err := n.getRequest("LOCK", nil)
+
+	req, err := n.getRequest(http.MethodGet, n.tfLockArtifact, nil)
 	if err != nil {
 		return "", err
 	}
@@ -111,34 +119,66 @@ func (n *NXRMClient) Lock(info *statemgr.LockInfo) (string, error) {
 		return "", err
 	}
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		n.lockID = info.ID
-		n.jsonLockInfo = jsonLockInfo
-		return info.ID, nil
-	case http.StatusUnauthorized:
-		return "", fmt.Errorf("NXRM requires auth")
-	case http.StatusForbidden:
-		return "", fmt.Errorf("NXRM invalid auth")
-	case http.StatusConflict, http.StatusLocked:
-		defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "", fmt.Errorf("NXRM remote state already locked, failed to read body")
+			return "", err
 		}
-		existing := statemgr.LockInfo{}
-		err = json.Unmarshal(body, &existing)
+		js := make(map[string]interface{})
+		err = json.Unmarshal(body, &js)
 		if err != nil {
-			return "", fmt.Errorf("NXRM remote state already locked, failed to unmarshal body")
+			return "", err
 		}
-		return "", fmt.Errorf("NXM remote state already locked: ID=%s", existing.ID)
-	default:
-		return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+
+		id := js["ID"].(string)
+
+		return "", fmt.Errorf("NXRM remote state already locked: ID=%s", id)
 	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		req, err := n.getRequest(http.MethodPut, n.tfLockArtifact, bytes.NewReader(jsonLockInfo))
+		if err != nil {
+			return "", err
+		}
+
+		resp, err := n.getHTTPClient().Do(req)
+		if err != nil {
+			return "", err
+		}
+
+		switch resp.StatusCode {
+		case http.StatusCreated:
+			n.lockID = info.ID
+			n.jsonLockInfo = jsonLockInfo
+			return info.ID, nil
+		case http.StatusUnauthorized:
+			return "", fmt.Errorf("NXRM requires auth")
+		case http.StatusForbidden:
+			return "", fmt.Errorf("NXRM invalid auth")
+		case http.StatusBadRequest:
+			return info.ID, nil
+		case http.StatusConflict, http.StatusLocked:
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return "", fmt.Errorf("NXRM remote state already locked, failed to read body")
+			}
+			existing := statemgr.LockInfo{}
+			err = json.Unmarshal(body, &existing)
+			if err != nil {
+				return "", fmt.Errorf("NXRM remote state already locked, failed to unmarshal body")
+			}
+
+		default:
+			return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+		}
+	}
+
+	return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
 }
 
 func (n *NXRMClient) Unlock(id string) error {
-	req, err := n.getRequest("LOCK", nil)
+	req, err := n.getRequest(http.MethodGet, n.tfLockArtifact, nil)
 	if err != nil {
 		return err
 	}
@@ -148,16 +188,27 @@ func (n *NXRMClient) Unlock(id string) error {
 		return err
 	}
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	default:
-		return fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		req, err := n.getRequest(http.MethodDelete, n.tfLockArtifact, nil)
+		if err != nil {
+			return err
+		}
+
+		resp, err := n.getHTTPClient().Do(req)
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode == http.StatusNoContent {
+			return nil
+		}
 	}
+
+	return fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
 }
 
 func (n *NXRMClient) Delete() error {
-	req, err := n.getRequest(http.MethodDelete, nil)
+	req, err := n.getRequest(http.MethodDelete, n.tfStateArtifact, nil)
 	if err != nil {
 		return err
 	}
