@@ -40,6 +40,10 @@ func (n *RemoteClient) getNXRMURL(artifact string) string {
 		subpath = strings.TrimRight(n.subpath, "/")
 	}
 
+	if strings.HasPrefix(n.subpath, "/") {
+		subpath = strings.TrimLeft(n.subpath, "/")
+	}
+
 	return fmt.Sprintf("%s/%s/%s", url, subpath, artifact)
 }
 
