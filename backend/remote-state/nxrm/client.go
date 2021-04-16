@@ -16,15 +16,14 @@ import (
 )
 
 type NXRMClient struct {
-	userName        string
-	password        string
-	url             string
-	subpath         string
-	stateName       string
-	timeout         int
-	tfStateArtifact string
-	tfLockArtifact  string
-	httpClient      *http.Client
+	userName       string
+	password       string
+	url            string
+	subpath        string
+	stateName      string
+	timeout        int
+	tfLockArtifact string
+	httpClient     *http.Client
 
 	lockID       string
 	jsonLockInfo []byte
@@ -36,7 +35,12 @@ func (n *NXRMClient) getNXRMURL(artifact string) string {
 		url = strings.TrimRight(n.url, "/")
 	}
 
-	return fmt.Sprintf("%s/%s/%s", url, n.subpath, artifact)
+	subpath := n.subpath
+	if strings.HasSuffix(n.subpath, "/") {
+		subpath = strings.TrimRight(n.subpath, "/")
+	}
+
+	return fmt.Sprintf("%s/%s/%s", url, subpath, artifact)
 }
 
 func (n *NXRMClient) getHTTPClient() *http.Client {
@@ -60,7 +64,7 @@ func (n *NXRMClient) getRequest(method string, artifact string, data io.Reader) 
 }
 
 func (n *NXRMClient) Get() (*remote.Payload, error) {
-	req, err := n.getRequest(http.MethodGet, n.tfStateArtifact, nil)
+	req, err := n.getRequest(http.MethodGet, n.stateName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +98,7 @@ func (n *NXRMClient) Get() (*remote.Payload, error) {
 }
 
 func (n *NXRMClient) Put(data []byte) error {
-	req, err := n.getRequest(http.MethodPut, n.tfStateArtifact, bytes.NewReader(data))
+	req, err := n.getRequest(http.MethodPut, n.stateName, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -209,7 +213,7 @@ func (n *NXRMClient) Unlock(id string) error {
 }
 
 func (n *NXRMClient) Delete() error {
-	req, err := n.getRequest(http.MethodDelete, n.tfStateArtifact, nil)
+	req, err := n.getRequest(http.MethodDelete, n.stateName, nil)
 	if err != nil {
 		return err
 	}

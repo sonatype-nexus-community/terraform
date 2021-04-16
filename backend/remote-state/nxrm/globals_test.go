@@ -1,5 +1,7 @@
 package nxrm
 
+import "fmt"
+
 var config = map[string]interface{}{
 	"username":  "testymctestface",
 	"password":  "mybigsecret",
@@ -7,4 +9,8 @@ var config = map[string]interface{}{
 	"subpath":   "this/here",
 	"stateName": "demo.tfstate",
 	"timeout":   30,
+}
+
+func mismatchError(configName string, got interface{}) string {
+	return fmt.Sprintf("%s: expected: %s got: %s", configName, config[configName], got.(string))
 }

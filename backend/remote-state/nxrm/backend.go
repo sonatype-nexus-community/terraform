@@ -88,7 +88,7 @@ func (b *Backend) configure(ctx context.Context) error {
 		url:             url,
 		subpath:         subpath,
 		tfLockArtifact:  fmt.Sprintf("%s.lock.json", stateName),
-		tfStateArtifact: stateName,
+		stateName:       stateName,
 		timeout:         timeout,
 	}
 	return nil

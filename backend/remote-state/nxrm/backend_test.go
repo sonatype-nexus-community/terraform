@@ -15,25 +15,25 @@ func TestBackendConfig(t *testing.T) {
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
 
 	if b.client.userName != config["username"] {
-		t.Fatalf("Incorrect userName populated")
+		t.Fatalf(mismatchError("userName", b.client.userName))
 	}
 	if b.client.password != config["password"] {
-		t.Fatalf("Incorrect password populated")
+		t.Fatalf(mismatchError("password", b.client.password))
 	}
 	if b.client.url != config["url"] {
-		t.Fatalf("Incorrect url populated")
+		t.Fatalf(mismatchError("url", b.client.url))
 	}
 
 	if b.client.subpath != config["subpath"] {
-		t.Fatalf("Incorrect subpath populated")
+		t.Fatalf(mismatchError("subpath", b.client.subpath))
 	}
 
 	if b.client.stateName != config["stateName"] {
-		t.Fatalf("Incorrect stateName populated")
+		t.Fatalf(mismatchError("stateName", b.client.stateName))
 	}
 
 	if b.client.timeout != config["timeout"] {
-		t.Fatalf("Incorrect timeout populated")
+		t.Fatalf(mismatchError("timeout", b.client.timeout))
 	}
 }
 
