@@ -218,7 +218,7 @@ func (n *NXRMClient) Delete() error {
 		return err
 	}
 
-	n.getHTTPClient().Do(req)
+	_, err = n.getHTTPClient().Do(req)
 	if err != nil {
 		return err
 	}
