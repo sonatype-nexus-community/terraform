@@ -87,7 +87,7 @@ func (b *Backend) configure(ctx context.Context) error {
 		password:        password,
 		url:             url,
 		subpath:         subpath,
-		tfLockArtifact:  fmt.Sprintf("%s.lock.json", stateName),
+		tfLockArtifact:  fmt.Sprintf("%s.lock", stateName),
 		stateName:       stateName,
 		timeout:         timeout,
 	}
