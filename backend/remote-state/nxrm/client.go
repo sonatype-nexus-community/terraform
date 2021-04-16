@@ -183,6 +183,7 @@ func (n *RemoteClient) Lock(info *statemgr.LockInfo) (string, error) {
 }
 
 func (n *RemoteClient) Unlock(id string) error {
+	// @TODO Sanity check this! Not sure it should exist
 	lockErr := &statemgr.LockError{}
 	if n.lockID != id {
 		lockErr.Err = fmt.Errorf("lock id %q does not match existing lock", id)
