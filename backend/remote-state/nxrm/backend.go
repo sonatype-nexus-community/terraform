@@ -69,7 +69,7 @@ func New() backend.Backend {
 type Backend struct {
 	*schema.Backend
 
-	client *NXRMClient
+	client *RemoteClient
 }
 
 func (b *Backend) configure(ctx context.Context) error {
@@ -82,14 +82,14 @@ func (b *Backend) configure(ctx context.Context) error {
 	stateName := data.Get("stateName").(string)
 	timeout := data.Get("timeout").(int)
 
-	b.client = &NXRMClient{
-		userName:        userName,
-		password:        password,
-		url:             url,
-		subpath:         subpath,
-		tfLockArtifact:  fmt.Sprintf("%s.lock", stateName),
-		stateName:       stateName,
-		timeout:         timeout,
+	b.client = &RemoteClient{
+		userName:       userName,
+		password:       password,
+		url:            url,
+		subpath:        subpath,
+		tfLockArtifact: fmt.Sprintf("%s.lock", stateName),
+		stateName:      stateName,
+		timeout:        timeout,
 	}
 	return nil
 }

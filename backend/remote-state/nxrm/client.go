@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform/states/statemgr"
 )
 
-type NXRMClient struct {
+type RemoteClient struct {
 	userName       string
 	password       string
 	url            string
@@ -29,7 +29,7 @@ type NXRMClient struct {
 	jsonLockInfo []byte
 }
 
-func (n *NXRMClient) getNXRMURL(artifact string) string {
+func (n *RemoteClient) getNXRMURL(artifact string) string {
 	url := n.url
 	if strings.HasSuffix(n.url, "/") {
 		url = strings.TrimRight(n.url, "/")
@@ -43,7 +43,7 @@ func (n *NXRMClient) getNXRMURL(artifact string) string {
 	return fmt.Sprintf("%s/%s/%s", url, subpath, artifact)
 }
 
-func (n *NXRMClient) getHTTPClient() *http.Client {
+func (n *RemoteClient) getHTTPClient() *http.Client {
 	if n.httpClient == nil {
 		n.httpClient = &http.Client{
 			Timeout: time.Second * time.Duration(n.timeout),
@@ -52,7 +52,7 @@ func (n *NXRMClient) getHTTPClient() *http.Client {
 	return n.httpClient
 }
 
-func (n *NXRMClient) getRequest(method string, artifact string, data io.Reader) (*http.Request, error) {
+func (n *RemoteClient) getRequest(method string, artifact string, data io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, n.getNXRMURL(artifact), data)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (n *NXRMClient) getRequest(method string, artifact string, data io.Reader) 
 	return req, nil
 }
 
-func (n *NXRMClient) Get() (*remote.Payload, error) {
+func (n *RemoteClient) Get() (*remote.Payload, error) {
 	req, err := n.getRequest(http.MethodGet, n.stateName, nil)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (n *NXRMClient) Get() (*remote.Payload, error) {
 	return payload, nil
 }
 
-func (n *NXRMClient) Put(data []byte) error {
+func (n *RemoteClient) Put(data []byte) error {
 	req, err := n.getRequest(http.MethodPut, n.stateName, bytes.NewReader(data))
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (n *NXRMClient) Put(data []byte) error {
 	return nil
 }
 
-func (n *NXRMClient) Lock(info *statemgr.LockInfo) (string, error) {
+func (n *RemoteClient) Lock(info *statemgr.LockInfo) (string, error) {
 	jsonLockInfo := info.Marshal()
 
 	req, err := n.getRequest(http.MethodGet, n.tfLockArtifact, nil)
@@ -182,7 +182,7 @@ func (n *NXRMClient) Lock(info *statemgr.LockInfo) (string, error) {
 	return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
 }
 
-func (n *NXRMClient) Unlock(id string) error {
+func (n *RemoteClient) Unlock(id string) error {
 	req, err := n.getRequest(http.MethodGet, n.tfLockArtifact, nil)
 	if err != nil {
 		return err
@@ -212,13 +212,13 @@ func (n *NXRMClient) Unlock(id string) error {
 	return fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
 }
 
-func (n *NXRMClient) Delete() error {
+func (n *RemoteClient) Delete() error {
 	req, err := n.getRequest(http.MethodDelete, n.stateName, nil)
 	if err != nil {
 		return err
 	}
 
-	n.getHTTPClient().Do(req)
+	_, err = n.getHTTPClient().Do(req)
 	if err != nil {
 		return err
 	}
