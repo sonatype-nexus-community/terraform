@@ -35,6 +35,25 @@ func TestGetNXRMURLTrimUrl(t *testing.T) {
 	}
 }
 
+func TestGetNXRMURLTrimSubpath(t *testing.T) {
+	testConfg := map[string]interface{}{
+		"url":       "http://localhost:8081/repository/tf-backend",
+		"subpath":   "this/here",
+		"username":  "",
+		"password":  "",
+		"stateName": "demo.tfstate",
+	}
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(testConfg)).(*Backend)
+
+	// force mutation, avoid effect of ValidateFunc()
+	b.client.subpath = "this/here/"
+	url := b.client.getNXRMURL(b.client.stateName)
+
+	if url != `http://localhost:8081/repository/tf-backend/this/here/demo.tfstate` {
+		t.Fatalf("getNXRMURL mismatch: %s", url)
+	}
+}
+
 func TestGetHTTPClient(t *testing.T) {
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
 	expectedTimeout := time.Second * time.Duration(config["timeout"].(int))
