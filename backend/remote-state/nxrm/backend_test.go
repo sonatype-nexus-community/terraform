@@ -15,24 +15,24 @@ func TestBackendConfig(t *testing.T) {
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
 	if b.client.userName != cfg["username"] {
-		t.Fatalf(mismatchError(cfg, "username", b.client.userName))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "username", b.client.userName))
 	}
 	if b.client.password != cfg["password"] {
-		t.Fatalf(mismatchError(cfg, "password", b.client.password))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "password", b.client.password))
 	}
 	if b.client.url != cfg["url"] {
-		t.Fatalf(mismatchError(cfg, "url", b.client.url))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "url", b.client.url))
 	}
 
 	if b.client.subpath != cfg["subpath"] {
-		t.Fatalf(mismatchError(cfg, "subpath", b.client.subpath))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "subpath", b.client.subpath))
 	}
 
 	if b.client.stateName != cfg["stateName"] {
-		t.Fatalf(mismatchError(cfg, "stateName", b.client.stateName))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "stateName", b.client.stateName))
 	}
 
 	if b.client.timeout != cfg["timeout"] {
-		t.Fatalf(mismatchError(cfg, "timeout", b.client.timeout))
+		t.Fatalf("Backend mismatch: %s", mismatchError(cfg, "timeout", b.client.timeout))
 	}
 }

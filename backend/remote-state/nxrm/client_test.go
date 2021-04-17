@@ -77,10 +77,10 @@ func TestGetRequest(t *testing.T) {
 	}
 
 	if u != cfg["username"].(string) {
-		t.Fatalf(mismatchError(cfg, "username", u))
+		t.Fatalf("GetRequest() - %s", mismatchError(cfg, "username", u))
 	}
 
 	if p != cfg["password"].(string) {
-		t.Fatalf(mismatchError(cfg, "password", p))
+		t.Fatalf("GetRequest() - %s", mismatchError(cfg, "password", p))
 	}
 }
