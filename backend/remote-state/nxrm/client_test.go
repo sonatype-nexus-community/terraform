@@ -53,10 +53,9 @@ func TestGetNXRMURLTrimSubpathPrefix(t *testing.T) {
 }
 
 func TestGetHTTPClient(t *testing.T) {
-	defaultConfig := InitTestConfig()
 	cfg := InitTestConfig()
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
-	expectedTimeout := time.Second * time.Duration(defaultConfig["timeout"].(int))
+	expectedTimeout := time.Second * time.Duration(cfg["timeout"].(int))
 
 	got := b.client.getHTTPClient()
 	if got.Timeout != expectedTimeout {
