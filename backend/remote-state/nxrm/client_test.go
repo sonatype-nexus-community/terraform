@@ -84,16 +84,3 @@ func TestGetRequest(t *testing.T) {
 		t.Fatalf(mismatchError(cfg, "password", p))
 	}
 }
-
-func TestGet(t *testing.T) {
-	cfg := InitTestConfig()
-	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
-
-	payload, err := b.client.Get()
-	if err != nil {
-		t.Fatalf("Get() error: %s", err)
-	}
-	if payload != nil {
-		t.Error("Get() unexpected payload")
-	}
-}
