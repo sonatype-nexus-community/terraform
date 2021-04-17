@@ -9,7 +9,8 @@ import (
 )
 
 func TestGetNXRMURL(t *testing.T) {
-	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
+	cfg := InitTestConfig()
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
 	url := b.client.getNXRMURL(b.client.stateName)
 
@@ -19,7 +20,7 @@ func TestGetNXRMURL(t *testing.T) {
 }
 
 func TestGetNXRMURLTrimUrl(t *testing.T) {
-	cfg := config
+	cfg := InitTestConfig()
 	cfg["url"] = "http://localhost:8081/repository/tf-backend/"
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
@@ -30,7 +31,7 @@ func TestGetNXRMURLTrimUrl(t *testing.T) {
 }
 
 func TestGetNXRMURLTrimSubpathSuffix(t *testing.T) {
-	cfg := config
+	cfg := InitTestConfig()
 	cfg["subpath"] = "this/here/"
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
@@ -41,7 +42,7 @@ func TestGetNXRMURLTrimSubpathSuffix(t *testing.T) {
 }
 
 func TestGetNXRMURLTrimSubpathPrefix(t *testing.T) {
-	cfg := config
+	cfg := InitTestConfig()
 	cfg["subpath"] = "/this/here"
 	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
@@ -52,8 +53,10 @@ func TestGetNXRMURLTrimSubpathPrefix(t *testing.T) {
 }
 
 func TestGetHTTPClient(t *testing.T) {
-	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
-	expectedTimeout := time.Second * time.Duration(config["timeout"].(int))
+	defaultConfig := InitTestConfig()
+	cfg := InitTestConfig()
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
+	expectedTimeout := time.Second * time.Duration(defaultConfig["timeout"].(int))
 
 	got := b.client.getHTTPClient()
 	if got.Timeout != expectedTimeout {
@@ -62,9 +65,10 @@ func TestGetHTTPClient(t *testing.T) {
 }
 
 func TestGetRequest(t *testing.T) {
-	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
+	cfg := InitTestConfig()
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
-	req, err := b.client.getRequest(http.MethodGet, config["stateName"].(string), nil)
+	req, err := b.client.getRequest(http.MethodGet, cfg["stateName"].(string), nil)
 	if err != nil {
 		t.Fatalf("getRequest error: %s", err)
 	}
@@ -73,11 +77,24 @@ func TestGetRequest(t *testing.T) {
 		t.Fatalf("req.BasicAuth() not ok!")
 	}
 
-	if u != config["username"].(string) {
-		t.Fatalf(mismatchError("username", u))
+	if u != cfg["username"].(string) {
+		t.Fatalf(mismatchError(cfg, "username", u))
 	}
 
-	if p != config["password"].(string) {
-		t.Fatalf(mismatchError("password", p))
+	if p != cfg["password"].(string) {
+		t.Fatalf(mismatchError(cfg, "password", p))
+	}
+}
+
+func TestGet(t *testing.T) {
+	cfg := InitTestConfig()
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
+
+	payload, err := b.client.Get()
+	if err != nil {
+		t.Fatalf("Get() error: %s", err)
+	}
+	if payload != nil {
+		t.Error("Get() unexpected payload")
 	}
 }

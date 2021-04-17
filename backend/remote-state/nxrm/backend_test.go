@@ -11,27 +11,28 @@ func TestBackend_impl(t *testing.T) {
 }
 
 func TestBackendConfig(t *testing.T) {
-	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(config)).(*Backend)
+	cfg := InitTestConfig()
+	b := backend.TestBackendConfig(t, New(), backend.TestWrapConfig(cfg)).(*Backend)
 
-	if b.client.userName != config["username"] {
-		t.Fatalf(mismatchError("userName", b.client.userName))
+	if b.client.userName != cfg["username"] {
+		t.Fatalf(mismatchError(cfg, "username", b.client.userName))
 	}
-	if b.client.password != config["password"] {
-		t.Fatalf(mismatchError("password", b.client.password))
+	if b.client.password != cfg["password"] {
+		t.Fatalf(mismatchError(cfg, "password", b.client.password))
 	}
-	if b.client.url != config["url"] {
-		t.Fatalf(mismatchError("url", b.client.url))
-	}
-
-	if b.client.subpath != config["subpath"] {
-		t.Fatalf(mismatchError("subpath", b.client.subpath))
+	if b.client.url != cfg["url"] {
+		t.Fatalf(mismatchError(cfg, "url", b.client.url))
 	}
 
-	if b.client.stateName != config["stateName"] {
-		t.Fatalf(mismatchError("stateName", b.client.stateName))
+	if b.client.subpath != cfg["subpath"] {
+		t.Fatalf(mismatchError(cfg, "subpath", b.client.subpath))
 	}
 
-	if b.client.timeout != config["timeout"] {
-		t.Fatalf(mismatchError("timeout", b.client.timeout))
+	if b.client.stateName != cfg["stateName"] {
+		t.Fatalf(mismatchError(cfg, "stateName", b.client.stateName))
+	}
+
+	if b.client.timeout != cfg["timeout"] {
+		t.Fatalf(mismatchError(cfg, "timeout", b.client.timeout))
 	}
 }
