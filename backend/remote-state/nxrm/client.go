@@ -179,11 +179,11 @@ func (n *RemoteClient) Lock(info *statemgr.LockInfo) (string, error) {
 			}
 
 		default:
-			return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+			return "", fmt.Errorf("unexpected HTTP response code %d", resp.StatusCode)
 		}
 	}
 
-	return "", fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+	return "", fmt.Errorf("unexpected HTTP response code %d", resp.StatusCode)
 }
 
 func (n *RemoteClient) Unlock(id string) error {
@@ -220,7 +220,7 @@ func (n *RemoteClient) Unlock(id string) error {
 		}
 	}
 
-	return fmt.Errorf("Unexpected HTTP response code %d", resp.StatusCode)
+	return fmt.Errorf("unexpected HTTP response code %d", resp.StatusCode)
 }
 
 func (n *RemoteClient) Delete() error {
